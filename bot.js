@@ -16,7 +16,7 @@ client.on("qr", (qr) => {
 
 client.on("message", async (message) => {
   // Função assíncrona para usar await
-  if (message.body.toLocaleLowerCase() === "oi") {
+  if (message.body.toLocaleLowerCase()) {
     client.sendMessage(
       message.from,
       "Olá, seja bem-vindo ao canal de suporte técnico Fundação José Silveira, destinado às unidades externas.\n" +
@@ -80,12 +80,25 @@ client.on("message", async (message) => {
           message.from,
           `Atualmente o status da seu chamado é: ${statusMessageGLPI}`
         );
-        const tecnicoCheck = await connection.execute("select users_id from glpiweb.glpi_tickets_users gtu where tickets_id = ?", [idChamado])
-        const nomeTecnico = tecnicoCheck[0];
-        client.sendMessage(
-          message.from,
-          `O Técnico atribuido ao seu chamado é: ${nomeTecnico}`
-        );
+
+        const [tecnicoCheckFirstname] = await connection.execute("select u.firstname from glpiweb.glpi_tickets_users gtu JOIN glpiweb.glpi_users u ON gtu.users_id = u.id where gtu.tickets_id = ?", [idChamado])
+        const [tecnicoCheckRealname] = await connection.execute("select u.realname from glpiweb.glpi_tickets_users gtu JOIN glpiweb.glpi_users u ON gtu.users_id = u.id where gtu.tickets_id = ?", [idChamado])
+
+        if (tecnicoCheckFirstname.length > 0 && tecnicoCheckRealname.length > 0){
+          const nomeTecnicoFirstname = tecnicoCheckFirstname[1].firstname;
+          const nomeTecnicoRealname = tecnicoCheckRealname[1].realname;
+          const nomeTecnico = `${nomeTecnicoFirstname} ${nomeTecnicoRealname}`;
+          client.sendMessage(
+            message.from,
+            `O Técnico atribuido ao seu chamado é: ${nomeTecnico}`
+          );
+        } else {
+          client.sendMessage(
+            message.from,
+            "Não há um técnico atribuído a este chamado."
+          );
+        }
+        aguardandoGLPI = false; // Somente redefine o estado se o chamado for encontrado
       } else {
         client.sendMessage(
           message.from,
@@ -98,9 +111,8 @@ client.on("message", async (message) => {
         message.from,
         "Houve um erro ao buscar seu chamado. Tente novamente mais tarde."
       );
+      aguardandoGLPI = false; // Redefine o estado em caso de erro
     }
-
-    aguardandoGLPI = false; // Reseta o estado após receber a resposta
   }
 });
 
