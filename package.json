@@ -1,5 +1,19 @@
 {
+  "name": "API-whatsapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --no-warnings bot.js"
+  },
+  "author": "devAvelarR",
+  "license": "ISC",
   "dependencies": {
+    "API-whatsapp": "file:",
+    "dotenv": "^16.4.5",
+    "mysql2": "^3.11.0",
+    "mysql2-promise": "^0.1.4",
     "qrcode-terminal": "^0.12.0",
     "whatsapp-web.js": "^1.25.0"
   }
